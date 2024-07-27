@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fetch Google Sheet Data</title>
+</head>
+<body>
+    <h1>Գտեք ձեր խմբերը</h1>
+    <input type="text" id="studentName" placeholder="Մուտքագրեք ձեր անունը">
+    <button onclick="fetchGroup()">Get Group</button>
+    <p id="groupResult"></p>
+
+    <script>
+        async function fetchGroup() {
+            const name = document.getElementById('studentName').value.trim().toLowerCase();
+            const resultElement = document.getElementById('groupResult');
+            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+            const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRv-pcfqSwhzpNKuYb6sDBAP-E5ZUwfe_TSozwQ1Qg15OvYkGBB4th6n2bEpT_Uu5VtO6_mTqXn-nt9/pub?output=csv';
+
+            try {
+                const response = await fetch(proxyUrl + sheetUrl);
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const csvText = await response.text();
+                const rows = csvText.split('\n').map(row => row.split(','));
+                
+                for (let row of rows) {
+                    const [studentFirstName, studentLastName, group] = row.map(cell => cell.trim().toLowerCase());
+                    if (name === `${studentFirstName} ${studentLastName}` || name === studentFirstName || name === studentLastName) {
+                        resultElement.textContent = `Group: ${group}`;
+                        return;
+                    }
+                }
+                
+                resultElement.textContent = 'Այդպիսի ուսանող չկա ցուցակում';
+            } catch (error) {
+                resultElement.textContent = 'An error occurred while fetching data: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
